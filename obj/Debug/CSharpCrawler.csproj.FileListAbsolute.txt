@@ -1,0 +1,11 @@
+C:\GameTest\WebCrawler\obj\Debug\Interop.SHDocVw.dll
+C:\GameTest\WebCrawler\obj\Debug\CSharpCrawler.csproj.ResolveComReference.cache
+C:\GameTest\WebCrawler\bin\Debug\CSharpCrawler.exe
+C:\GameTest\WebCrawler\bin\Debug\CSharpCrawler.pdb
+C:\GameTest\WebCrawler\bin\Debug\Interop.SHDocVw.dll
+C:\GameTest\WebCrawler\obj\Debug\CSharpCrawler.csprojResolveAssemblyReference.cache
+C:\GameTest\WebCrawler\obj\Debug\CSharpCrawler.exe
+C:\GameTest\WebCrawler\obj\Debug\CSharpCrawler.pdb
+C:\GameTest\WebCrawler\bin\Debug\HtmlAgilityPack.dll
+C:\GameTest\WebCrawler\bin\Debug\HtmlAgilityPack.pdb
+C:\GameTest\WebCrawler\bin\Debug\HtmlAgilityPack.xml
