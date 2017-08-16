@@ -18,33 +18,30 @@ namespace CSharpCrawler
       listOfKeyholders.Add("Andresen");
       listOfKeyholders.Add("Anne");
       listOfKeyholders.Add("Anno");
-      listOfKeyholders.Add("Alex");
       listOfKeyholders.Add("arinbjorn");
       listOfKeyholders.Add("Bjarke");
       listOfKeyholders.Add("Bjørn");
       listOfKeyholders.Add("Bundgaard");
-      listOfKeyholders.Add("camilla");
       listOfKeyholders.Add("Caro");
       listOfKeyholders.Add("dusk");
+      listOfKeyholders.Add("Dalfoss");
       listOfKeyholders.Add("Freja");
       listOfKeyholders.Add("jacob");
-      listOfKeyholders.Add("Jenny");
-      listOfKeyholders.Add("John");
       listOfKeyholders.Add("Kasper");
       listOfKeyholders.Add("Marius");
+      listOfKeyholders.Add("Mikael");
       listOfKeyholders.Add("Mimi");
       listOfKeyholders.Add("Nano");
       listOfKeyholders.Add("Natasha");
-      listOfKeyholders.Add("Nicklas");
-      listOfKeyholders.Add("Paw");
       listOfKeyholders.Add("Patrick");
+      listOfKeyholders.Add("Polle");
       listOfKeyholders.Add("Pyrus");
       listOfKeyholders.Add("Rune");
-      listOfKeyholders.Add("Simba");
+      listOfKeyholders.Add("Sebastian");
       listOfKeyholders.Add("Sofie");
       listOfKeyholders.Add("Sven");
       listOfKeyholders.Add("Svenne");
-      listOfKeyholders.Add("Søren");
+      listOfKeyholders.Add("Theis");
 
       //List Used to create the headers for the csv file
       List<string> listOfDates = new List<string>();
@@ -60,7 +57,7 @@ namespace CSharpCrawler
       {
         WebClient web = new WebClient();
         WebRequest request = WebRequest.Create("http://www.cafeen.org/internt/interntwiki/index.php/Drift/" + keyHolderName);
-        request.Credentials = new System.Net.NetworkCredential("cafe", "Rammstein");
+        request.Credentials = new System.Net.NetworkCredential("cafe", "Aristocats");
         HttpWebResponse response = (HttpWebResponse)request.GetResponse();
         // Display the status.
         Console.WriteLine(response.StatusDescription);
