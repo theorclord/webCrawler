@@ -12,36 +12,27 @@ namespace CSharpCrawler
   {
     static void Main(string[] args)
     {
+      string userName = "";
+      string filePath = "";
+      string pass = "";
+      if (args.Length == 0)
+      {
+        Console.WriteLine("Enter password and user name for cafeen.org");
+        Console.Write("Enter user name: ");
+        userName = Console.ReadLine();
+        Console.Write("Enter password: ");
+        pass = Console.ReadLine();
+
+        Console.WriteLine();
+        Console.Write("Enter file path for keyholders: ");
+        filePath = Console.ReadLine();
+      } else
+      {
+        // TODO handle one line program
+      }
+      string[] keyholders = File.ReadAllLines(filePath);
       // A list containing the names of the keyholders as displayed on the wiki
-      List<string> listOfKeyholders = new List<string>();
-      listOfKeyholders.Add("Adam");
-      listOfKeyholders.Add("Andresen");
-      listOfKeyholders.Add("Anne");
-      listOfKeyholders.Add("Anno");
-      listOfKeyholders.Add("arinbjorn");
-      listOfKeyholders.Add("Bjarke");
-      listOfKeyholders.Add("Bjørn");
-      listOfKeyholders.Add("Bundgaard");
-      listOfKeyholders.Add("Caro");
-      listOfKeyholders.Add("dusk");
-      listOfKeyholders.Add("Dalfoss");
-      listOfKeyholders.Add("Freja");
-      listOfKeyholders.Add("jacob");
-      listOfKeyholders.Add("Kasper");
-      listOfKeyholders.Add("Marius");
-      listOfKeyholders.Add("Mikael");
-      listOfKeyholders.Add("Mimi");
-      listOfKeyholders.Add("Nano");
-      listOfKeyholders.Add("Natasha");
-      listOfKeyholders.Add("Patrick");
-      listOfKeyholders.Add("Polle");
-      listOfKeyholders.Add("Pyrus");
-      listOfKeyholders.Add("Rune");
-      listOfKeyholders.Add("Sebastian");
-      listOfKeyholders.Add("Sofie");
-      listOfKeyholders.Add("Sven");
-      listOfKeyholders.Add("Svenne");
-      listOfKeyholders.Add("Theis");
+      List<string> listOfKeyholders = new List<string>(keyholders);
 
       //List Used to create the headers for the csv file
       List<string> listOfDates = new List<string>();
@@ -51,13 +42,21 @@ namespace CSharpCrawler
       // Dictionary containing the keyholder responses
       Dictionary<string, List<string>> keyHolderResp = new Dictionary<string, List<string>>();
 
+      #region HTML load
       bool addDates = true;
       // go through each keyholder to get their availability.
       foreach (string keyHolderName in listOfKeyholders)
       {
         WebClient web = new WebClient();
-        WebRequest request = WebRequest.Create("http://www.cafeen.org/internt/interntwiki/index.php/Drift/" + keyHolderName);
-        request.Credentials = new System.Net.NetworkCredential("cafe", "Aristocats");
+        HttpWebRequest request = (HttpWebRequest)WebRequest.Create("http://www.cafeen.org/internt/interntwiki/index.php/Drift/" + keyHolderName);
+        //request.Accept = @"text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8";
+        //request.Headers.Set(const_AcceptLanguageHeaderName, const_AcceptLanguageHeader);
+        //request.UserAgent = @"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/63.0.3239.132 Safari/537.36";
+        //request.CookieContainer = new CookieContainer();
+        //request.KeepAlive = true;
+        //request.Timeout = 1000;
+
+        request.Credentials = new System.Net.NetworkCredential(userName, pass);
         HttpWebResponse response = (HttpWebResponse)request.GetResponse();
         // Display the status.
         Console.WriteLine(response.StatusDescription);
@@ -69,9 +68,6 @@ namespace CSharpCrawler
 
         Encoding iso = Encoding.GetEncoding("ISO-8859-1");
         Encoding utf8 = Encoding.UTF8;
-        //byte[] utfBytes = utf8.GetBytes(Message);
-        //byte[] isoBytes = Encoding.Convert(utf8, iso, utfBytes);
-        //string msg = iso.GetString(isoBytes);
 
         StreamReader reader = new StreamReader(dataStream, iso);
         // Read the content.
@@ -120,11 +116,13 @@ namespace CSharpCrawler
             }
           }
         }
-        System.IO.File.WriteAllText(@"C:\WriteInnerText.txt", innerText);
+        //System.IO.File.WriteAllText(@"C:\WriteInnerText.txt", innerText);
 
         addDates = false;
       }
-
+      // clean up
+      File.Delete(@"C:\WriteText.txt");
+      #endregion
       /* ----------------------------------------------------------
                         CSV file creation
          ----------------------------------------------------------*/
@@ -304,6 +302,14 @@ namespace CSharpCrawler
 
       System.IO.File.WriteAllText(@"C:\FinalCsvTrans.txt", finalTransCSV.ToString(),Encoding.Default);
       Console.ReadLine();
+
+
+      // greedy schedule assignment
+
+      // load file and create priority queue
+
+      File.ReadAllLines(@"C:\FinalCsvTrans.txt");
+
       /*
        END OF PROGRAM
        */
