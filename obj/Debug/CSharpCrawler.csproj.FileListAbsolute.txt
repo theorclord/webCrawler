@@ -9,3 +9,4 @@ C:\GameTest\WebCrawler\obj\Debug\CSharpCrawler.pdb
 C:\GameTest\WebCrawler\bin\Debug\HtmlAgilityPack.dll
 C:\GameTest\WebCrawler\bin\Debug\HtmlAgilityPack.pdb
 C:\GameTest\WebCrawler\bin\Debug\HtmlAgilityPack.xml
+C:\GameTest\WebCrawler\bin\Debug\CSharpCrawler.exe.config

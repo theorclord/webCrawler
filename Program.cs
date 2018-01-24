@@ -13,7 +13,7 @@ namespace CSharpCrawler
     static void Main(string[] args)
     {
       string userName = "";
-      string filePath = "";
+      string filePath = @"";
       string pass = "";
       if (args.Length == 0)
       {
@@ -47,8 +47,12 @@ namespace CSharpCrawler
       // go through each keyholder to get their availability.
       foreach (string keyHolderName in listOfKeyholders)
       {
-        WebClient web = new WebClient();
-        HttpWebRequest request = (HttpWebRequest)WebRequest.Create("http://www.cafeen.org/internt/interntwiki/index.php/Drift/" + keyHolderName);
+        //WebClient web = new WebClient();
+        
+        HttpWebRequest request = (HttpWebRequest)WebRequest.Create("https://www.cafeen.org/internt/interntwiki/index.php/Drift/" + keyHolderName);
+        // if the request fails:
+        // kigge på stackoverflow, hvis den IT-ansvarlige ikke holder certifikatet opdateret
+
         //request.Accept = @"text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8";
         //request.Headers.Set(const_AcceptLanguageHeaderName, const_AcceptLanguageHeader);
         //request.UserAgent = @"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/63.0.3239.132 Safari/537.36";
@@ -96,18 +100,24 @@ namespace CSharpCrawler
         keyHolderResp[keyHolderName] = new List<string>();
 
         // skip first table, as it only contains headers
-        bool firstRow = true;
+        // removed as the format has changed
+        // bool firstRow = true;
         foreach (HtmlNode table in tableDates)
         {
-          if (firstRow)
-          {
-            firstRow = false;
-            continue;
-          }
+          //if (firstRow)
+          //{
+          //  firstRow = false;
+          //  continue;
+          //}
           HtmlNodeCollection rows = table.SelectNodes("tr");
           foreach (HtmlNode row in rows)
           {
             HtmlNodeCollection columns = row.SelectNodes("td");
+            if(columns == null)
+            {
+              //the top column contains the th
+              continue;
+            }
             keyHolderResp[keyHolderName].Add(columns[4].InnerText);
             // add the dates as headers
             if (addDates)
@@ -308,8 +318,86 @@ namespace CSharpCrawler
 
       // load file and create priority queue
 
-      File.ReadAllLines(@"C:\FinalCsvTrans.txt");
+      string[] csvLines = File.ReadAllLines(@"C:\FinalCsvTrans.txt");
+      PriorityQueueMin<KeyholderEntry> keyholderQueue = new PriorityQueueMin<KeyholderEntry>();
+      // list for easy holder update.
+      Dictionary<string, KeyholderEntry> holderList = new Dictionary<string, KeyholderEntry>();
+      for(int i = 1; i<csvLines.Length; i += 2)
+      {
+        KeyholderEntry keyEntry = new KeyholderEntry() { Name = csvLines[i].Split(',')[0], numberOfHours = 0, answer = new Dictionary<string, choice>() };
+        keyholderQueue.Insert(keyEntry);
+        holderList.Add(csvLines[i].Split(',')[0], keyEntry);
+      }
 
+      Console.WriteLine(keyholderQueue.Count);
+
+      List<string> linesWithHours = new List<string>();
+      linesWithHours.Add(csvLines[0]);
+      for (int j = 1; j < csvLines[0].Split(',').Length; j++)
+      {
+        for (int i = 1; i < csvLines.Length; i += 2)
+        {
+          string[] dataLine1 = csvLines[i].Split(',');
+          string[] dataLine2 = csvLines[i+1].Split(',');
+          string dayCheckOpen = dataLine1[j];
+          string dayCheckClose = dataLine2[j];
+
+          string KeyName = dataLine1[0];
+          if (holderList.ContainsKey(KeyName))
+          {
+            if(dayCheckOpen.Trim().ToLower() == "x" && dayCheckClose.Trim().ToLower() == "x")
+            {
+              holderList[KeyName].answer.Add(csvLines[0].Split(',')[j], choice.can);
+            } else if(dayCheckOpen.Trim().ToLower() == "x")
+            {
+              holderList[KeyName].answer.Add(csvLines[0].Split(',')[j], choice.open);
+            } else if(dayCheckClose.Trim().ToLower() == "x")
+            {
+              holderList[KeyName].answer.Add(csvLines[0].Split(',')[j], choice.close);
+            }
+            else
+            {
+              holderList[KeyName].answer.Add(csvLines[0].Split(',')[j], choice.not);
+            }
+          }
+          else
+          {
+            Console.WriteLine("Error in assigning shifts");
+            return;
+          }
+          
+          //if (dayCheckOpen.Trim().ToLower() == "x")
+          //{
+          //  // add checked day and skip to next date
+
+          //  break;
+          //}
+        }
+      }
+
+      string endLine1 = "";
+      string endLine2 = "";
+      for(int i = 1; i< csvLines[0].Split(',').Length; i++)
+      {
+        string date = csvLines[0].Split(',')[i];
+        bool openChosen = false;
+        foreach(KeyholderEntry key in keyholderQueue)
+        {
+          if (!openChosen)
+          {
+            if (key.answer[date] == choice.can || key.answer[date] == choice.open)
+            {
+              openChosen = true;
+              endLine1 += "," + key.Name;
+            }
+          }
+        }
+        if (!openChosen)
+        {
+          endLine1 += ",";
+        }
+      }
+      Console.WriteLine("Algorithm Done");
       /*
        END OF PROGRAM
        */
