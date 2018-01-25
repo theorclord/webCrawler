@@ -28,7 +28,16 @@ namespace CSharpCrawler
         filePath = Console.ReadLine();
       } else
       {
-        // TODO handle one line program
+        if(args.Length == 3)
+        {
+          userName = args[0];
+          pass = args[1];
+          filePath = args[2];
+        } else
+        {
+          Console.WriteLine("Wrong number of arguments");
+          return;
+        }
       }
       string[] keyholders = File.ReadAllLines(filePath);
       // A list containing the names of the keyholders as displayed on the wiki
@@ -173,73 +182,8 @@ namespace CSharpCrawler
       }
       System.IO.File.WriteAllText(@"C:\FinalSchema.txt", finalText, Encoding.Default);
       Console.WriteLine(csvFileLine);
-      Console.ReadLine();
-
-      /* ----------------------------------------------------------
-                        Expanded CSV file creation
-         ----------------------------------------------------------*/
-
-      // Create final file looking as schema previously used
-      // The file needs two string lines for each member
-      // The file needs columns equal to the dates plus the user name
-      //string[,] finalSchemaGrid = new string[listOfDates.Count,listOfKeyholders.Count*2];
-
-      //// Out loop, the headers 
-      //for(int i = 0; i < listOfDates.Count; i++)
-      //{
-      //  finalSchemaGrid[i, 0] = listOfDates[i];
-      //  // Loop of keyholderNames
-      //  for(int j = 1; j < listOfKeyholders.Count; j++)
-      //  {
-      //    finalSchemaGrid[0, (j*2)-1] = listOfKeyholders[j];
-      //    //Loop of responses
-      //    for(int k = 0; k < keyHolderResp[listOfKeyholders[j]].Count; k++)
-      //    {
-      //      switch (keyHolderResp[listOfKeyholders[j]][k].ToLower())
-      //      {
-      //        case "kan":
-      //          finalSchemaGrid[k+1, (j*2)-1] = "x";
-      //          finalSchemaGrid[k+1, (j*2)] = "x";
-      //          break;
-      //        case "ikke":
-      //          finalSchemaGrid[k + 1, (j * 2) - 1] = "";
-      //          finalSchemaGrid[k + 1, (j * 2)] = "";
-      //          break;
-      //        case "lukke":
-      //          finalSchemaGrid[k + 1, (j * 2) - 1] = "";
-      //          finalSchemaGrid[k + 1, (j * 2)] = "x";
-      //          break;
-      //        case "åbne":
-      //          finalSchemaGrid[k + 1, (j * 2) - 1] = "x";
-      //          finalSchemaGrid[k + 1, (j * 2)] = "";
-      //          break;
-      //        default:
-      //          finalSchemaGrid[k + 1, j] = keyHolderResp[listOfKeyholders[j]][k];
-      //          break;
-      //      }
-      //    }
-      //  }
-      //}
-
-      //StringBuilder finalSchemaStringCSV = new StringBuilder();
-      //for(int i = 0; i < finalSchemaGrid.GetLength(0); i++)
-      //{
-      //  for(int j = 0; j < finalSchemaGrid.GetLength(1); j++)
-      //  {
-      //    finalSchemaStringCSV.Append(finalSchemaGrid[i, j]);
-      //    Console.Write(finalSchemaGrid[i, j]);
-      //    if (j != finalSchemaGrid.GetLength(1) - 1)
-      //    {
-      //      finalSchemaStringCSV.Append(",");
-      //      Console.Write(",");
-      //    }
-      //  }
-      //  finalSchemaStringCSV.Append("\n");
-      //  Console.WriteLine();
-      //}
-      //System.IO.File.WriteAllText(@"C:\FinalCsvTrans.txt", finalSchemaStringCSV.ToString());
       //Console.ReadLine();
-
+      
       /* ----------------------------------------------------------
                         Expanded CSV file creation From initial file
          ----------------------------------------------------------*/
@@ -309,9 +253,9 @@ namespace CSharpCrawler
         }
         finalTransCSV.Append("\n");
       }
-
+      sr.Close();
       System.IO.File.WriteAllText(@"C:\FinalCsvTrans.txt", finalTransCSV.ToString(),Encoding.Default);
-      Console.ReadLine();
+      //Console.ReadLine();
 
 
       // greedy schedule assignment
@@ -319,17 +263,16 @@ namespace CSharpCrawler
       // load file and create priority queue
 
       string[] csvLines = File.ReadAllLines(@"C:\FinalCsvTrans.txt");
-      PriorityQueueMin<KeyholderEntry> keyholderQueue = new PriorityQueueMin<KeyholderEntry>();
+      // list for filling priorityqueue
+      List<KeyholderEntry> keyHoldersList = new List<KeyholderEntry>();
       // list for easy holder update.
       Dictionary<string, KeyholderEntry> holderList = new Dictionary<string, KeyholderEntry>();
       for(int i = 1; i<csvLines.Length; i += 2)
       {
         KeyholderEntry keyEntry = new KeyholderEntry() { Name = csvLines[i].Split(',')[0], numberOfHours = 0, answer = new Dictionary<string, choice>() };
-        keyholderQueue.Insert(keyEntry);
+        keyHoldersList.Add(keyEntry);
         holderList.Add(csvLines[i].Split(',')[0], keyEntry);
       }
-
-      Console.WriteLine(keyholderQueue.Count);
 
       List<string> linesWithHours = new List<string>();
       linesWithHours.Add(csvLines[0]);
@@ -365,13 +308,6 @@ namespace CSharpCrawler
             Console.WriteLine("Error in assigning shifts");
             return;
           }
-          
-          //if (dayCheckOpen.Trim().ToLower() == "x")
-          //{
-          //  // add checked day and skip to next date
-
-          //  break;
-          //}
         }
       }
 
@@ -379,25 +315,112 @@ namespace CSharpCrawler
       string endLine2 = "";
       for(int i = 1; i< csvLines[0].Split(',').Length; i++)
       {
+        PriorityQueueMin<KeyholderEntry> keyholderQueue = new PriorityQueueMin<KeyholderEntry>();
+        keyholderQueue.insertRange(keyHoldersList);
         string date = csvLines[0].Split(',')[i];
         bool openChosen = false;
-        foreach(KeyholderEntry key in keyholderQueue)
+        bool closeChosen = false;
+
+        string openerKeyName = "";
+        string closerKeyName = "";
+        while(keyholderQueue.Count != 0 && (!openChosen || !closeChosen))
         {
-          if (!openChosen)
+          KeyholderEntry key = keyholderQueue.DelMin();
+          if (openerKeyName != key.Name && closerKeyName != key.Name)
           {
-            if (key.answer[date] == choice.can || key.answer[date] == choice.open)
+            if (!openChosen)
             {
-              openChosen = true;
-              endLine1 += "," + key.Name;
+              if (key.answer[date] == choice.can || key.answer[date] == choice.open)
+              {
+                openChosen = true;
+                endLine1 += "," + key.Name;
+                openerKeyName = key.Name;
+                DateTime dateDay = new DateTime(int.Parse(date.Substring(5, 4)), int.Parse(date.Substring(2, 2)), int.Parse(date.Substring(0, 2)));
+                switch (dateDay.DayOfWeek)
+                {
+                  case DayOfWeek.Sunday:
+                    break;
+                  case DayOfWeek.Monday:
+                    key.numberOfHours += 5;
+                    break;
+                  case DayOfWeek.Tuesday:
+                    key.numberOfHours += 4;
+                    break;
+                  case DayOfWeek.Wednesday:
+                    key.numberOfHours += 4;
+                    break;
+                  case DayOfWeek.Thursday:
+                    key.numberOfHours += 5;
+                    break;
+                  case DayOfWeek.Friday:
+                    key.numberOfHours += 8;
+                    break;
+                  case DayOfWeek.Saturday:
+                    break;
+                }
+              }
+            }
+            if (!closeChosen)
+            {
+              if (key.answer[date] == choice.can || key.answer[date] == choice.close)
+              {
+                closeChosen = true;
+                endLine2 += "," + key.Name;
+                closerKeyName = key.Name;
+                DateTime dateDay = new DateTime(int.Parse(date.Substring(5, 4)), int.Parse(date.Substring(2, 2)), int.Parse(date.Substring(0, 2)));
+                switch (dateDay.DayOfWeek)
+                {
+                  case DayOfWeek.Sunday:
+                    break;
+                  case DayOfWeek.Monday:
+                    key.numberOfHours += 5;
+                    break;
+                  case DayOfWeek.Tuesday:
+                    key.numberOfHours += 4;
+                    break;
+                  case DayOfWeek.Wednesday:
+                    key.numberOfHours += 4;
+                    break;
+                  case DayOfWeek.Thursday:
+                    key.numberOfHours += 5;
+                    break;
+                  case DayOfWeek.Friday:
+                    key.numberOfHours += 8;
+                    break;
+                  case DayOfWeek.Saturday:
+                    break;
+                }
+              }
             }
           }
         }
         if (!openChosen)
         {
           endLine1 += ",";
+          endLine2 += ",";
         }
       }
+      //string[] endLines = new string[] { "",endLine1, endLine2 };
       Console.WriteLine("Algorithm Done");
+      //File.AppendAllLines(@"C:\FinalCsvTrans.txt", endLines, Encoding.Default);
+
+      List<string> listWithAlgorithm = new List<string>();
+      listWithAlgorithm.Add(csvLines[0]);
+      for(int i = 1; i< csvLines.Length; i+=2)
+      {
+        if(holderList.ContainsKey(csvLines[i].Split(',')[0]))
+        {
+          csvLines[i + 1] = "" + holderList[csvLines[i].Split(',')[0]].numberOfHours + csvLines[i + 1];
+        }
+        listWithAlgorithm.Add(csvLines[i]);
+        listWithAlgorithm.Add(csvLines[i+1]);
+      }
+      listWithAlgorithm.Add(endLine1);
+      listWithAlgorithm.Add(endLine2);
+      File.WriteAllLines(@"C:\FinalCsvTransWithHours.txt", listWithAlgorithm.ToArray(), Encoding.Default);
+
+      File.Delete(@"C:\FinalCsvTrans.txt");
+      File.Delete(@"C:\FinalSchema.txt");
       /*
        END OF PROGRAM
        */
