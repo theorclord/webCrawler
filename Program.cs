@@ -6,7 +6,7 @@ using System.Text;
 using System.Xml;
 using HtmlAgilityPack;
 
-namespace CSharpCrawler
+namespace WebCrawler
 {
   class Program
   {
